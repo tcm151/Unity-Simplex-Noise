@@ -3,7 +3,7 @@ a compact and functional system for generating complex simplex noise layers for 
 
 the simplest implementation with in-editor control
 
-```
+```cs
 public class ProceduralGeneration : Monobehaviour
 {
     // accessible from the inspector
