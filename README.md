@@ -22,3 +22,32 @@ public class ProceduralGeneration : Monobehaviour
     }
 }
 ```
+
+```cs
+//> NOISE TYPES
+public enum Type { Simple, Rigid, Brownian, Swiss };
+
+//> NOISE LAYER SETTINGS
+[System.Serializable] public class Layer
+{
+    [Header("Properties")]
+    public bool enabled = true;
+    public bool subtract;
+    public Type noiseType;
+    
+    [Header("Masking")]
+    public bool useMask;
+    public Layer mask;
+
+    public SimplexGenerator generator = new SimplexGenerator();
+
+    [Header("Settings")]
+    [Range(01, 004)] public int octaves = 3;
+    [Range(00, 001)] public float strength = 0.25f;
+    [Range(00, .1f)] public float baseRoughness = 0.001f;
+    [Range(00, 010)] public float roughness = 4f;
+    [Range(00, 002)] public float persistence = 0.5f;
+    [Range(00, 001)] public float threshold = 0.5f;
+    public Vector3 offset = Vector3.zero;
+}
+```

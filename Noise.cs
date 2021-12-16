@@ -10,7 +10,6 @@ namespace ProcessControl.Procedural
         public enum Type { Simple, Rigid, Brownian, Swiss };
 
         //> NOISE LAYER SETTINGS
-        //@ convert to a scriptable object and see if it works... 
         [System.Serializable] public class Layer
         {
             [Header("Properties")]
@@ -34,7 +33,7 @@ namespace ProcessControl.Procedural
             public Vector3 offset = Vector3.zero;
         }
         
-        //> GET A NOISE VALUE FOR ANY VECTOR3
+        //> GET A NOISE VALUE CREATED FROM MULTIPLE NOISE LAYERS
         public static float GenerateValue(List<Layer> noiseLayers, Vector3 vector3)
         {
             //- return if list is empty
@@ -55,7 +54,7 @@ namespace ProcessControl.Procedural
             return noiseValue;
         }
 
-        //> GET A NOISE VALUE FROM A VECTOR3
+        //> GET A NOISE VALUE FOR ANY VECTOR3 BASED ON THE GIVEN LAYER SETTINGS
         public static float GenerateValue(Layer noiseLayer, Vector3 vector3)
         {
             float generatedValue = 0f;
