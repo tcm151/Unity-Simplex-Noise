@@ -10,17 +10,21 @@ namespace ProcessControl.Procedural
         public enum Type { Simple, Rigid, Brownian, Swiss };
 
         //> NOISE LAYER SETTINGS
+        //@ convert to a scriptable object and see if it works... 
         [System.Serializable] public class Layer
         {
+            [Header("Properties")]
             public bool enabled = true;
             public bool subtract;
+            public Type noiseType;
             
+            [Header("Masking")]
             public bool useMask;
             public Layer mask;
 
-            public Type noiseType;
-            public SimplexNoise generator = new SimplexNoise();
+            public SimplexGenerator generator = new SimplexGenerator();
 
+            [Header("Settings")]
             [Range(01, 004)] public int octaves = 3;
             [Range(00, 001)] public float strength = 0.25f;
             [Range(00, .1f)] public float baseRoughness = 0.001f;
@@ -31,33 +35,28 @@ namespace ProcessControl.Procedural
         }
         
         //> GET A NOISE VALUE FOR ANY VECTOR3
-        public static float GenerateValue(List<Layer> noiseLayers, Vector3 v3)
+        public static float GenerateValue(List<Layer> noiseLayers, Vector3 vector3)
         {
+            //- return if list is empty
+            if (noiseLayers.Count == 0) return default;
+            
+            
             float noiseValue = 0f;
-            float firstLayerValue = 0f;
-
-            //- calculate first layer
-            if (noiseLayers.Count > 0)
-            {
-                firstLayerValue = GenerateValue(noiseLayers[0], v3);
-                if (noiseLayers[0].enabled) noiseValue = firstLayerValue;
-            }
+            float firstLayer = GenerateValue(noiseLayers[0], vector3);
+            if (noiseLayers[0].enabled) noiseValue += GenerateValue(noiseLayers[0], vector3);
 
             //- calculate every other layer
-            for (int i = 1; i < noiseLayers.Count; i++)
+            for (int i = 1; i < noiseLayers.Count && noiseLayers[i].enabled; i++)
             {
-                // ignore if not enabled
-                if (!noiseLayers[i].enabled) continue;
-
-                float firstLayerMask = (noiseLayers[i].useMask) ? firstLayerValue : 1;
-                noiseValue += GenerateValue(noiseLayers[i], v3) * firstLayerMask;
+                float maskValue = (noiseLayers[i].useMask) ? firstLayer : 1;
+                noiseValue += GenerateValue(noiseLayers[i], vector3) * maskValue;
             }
 
             return noiseValue;
         }
 
         //> GET A NOISE VALUE FROM A VECTOR3
-        public static float GenerateValue(Layer noiseLayer, Vector3 v3)
+        public static float GenerateValue(Layer noiseLayer, Vector3 vector3)
         {
             float generatedValue = 0f;
             float roughness = noiseLayer.baseRoughness;
@@ -72,7 +71,7 @@ namespace ProcessControl.Procedural
                 {
                     for (int i = 0; i < noiseLayer.octaves; i++)
                     {
-                        float value = noiseLayer.generator.Generate(v3 * roughness + noiseLayer.offset);
+                        float value = noiseLayer.generator.Generate(vector3 * roughness + noiseLayer.offset);
                         generatedValue += (value + 1) / 2 * amplitude;
                         roughness *= noiseLayer.roughness;
                         amplitude *= noiseLayer.persistence;
@@ -84,7 +83,7 @@ namespace ProcessControl.Procedural
                 {
                     for (int i = 0; i < noiseLayer.octaves; i++)
                     {
-                        float value = 1 - Mathf.Abs(noiseLayer.generator.Generate(v3 * roughness + noiseLayer.offset));
+                        float value = 1 - Mathf.Abs(noiseLayer.generator.Generate(vector3 * roughness + noiseLayer.offset));
                         value *= value * weight;
                         weight = value;
                         generatedValue += value * amplitude;
@@ -113,7 +112,7 @@ namespace ProcessControl.Procedural
             }
 
             generatedValue = Mathf.Max(0, generatedValue - noiseLayer.threshold);
-            return (noiseLayer.subtract) ? -generatedValue * noiseLayer.strength : generatedValue * noiseLayer.strength;
+            return (noiseLayer.subtract) ? -generatedValue * noiseLayer.strength: generatedValue * noiseLayer.strength;
         }
     }
 }
